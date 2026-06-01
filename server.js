@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const Database = require('better-sqlite3');
 const session = require('express-session');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const fs = require('fs');
 
 const app = express();
