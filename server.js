@@ -72,12 +72,12 @@ CREATE TABLE IF NOT EXISTS predictions (
 
 // Seed 6 players with passwords
 const players = [
-  { name: 'Prabesh', email: 'prabesh@example.com', password: 'pass123' },
-  { name: 'Gaurave', email: 'gaurave@example.com', password: 'pass123' },
+  { name: 'Prabesh', email: 'prabeshsingh@gmail.com', password: 'pass123' },
+  { name: 'Gaurave', email: 'gaurav18np@gmail.com', password: 'pass123' },
   { name: 'Rajib',   email: 'rajib238@gmail.com',   password: 'pass123' },
-  { name: 'Sandeep', email: 'sandeep@example.com', password: 'pass123' },
-  { name: 'Shaymji', email: 'shaymji@example.com', password: 'pass123' },
-  { name: 'Subash',  email: 'subash@example.com',  password: 'pass123' }
+  { name: 'Sandeep', email: 'shree1sandeep@gmail.com', password: 'pass123' },
+  { name: 'Shaymji', email: 'shyamjikc@gmail.com', password: 'pass123' },
+  { name: 'Subash',  email: 'srijal146@gmail.com',  password: 'pass123' }
 ];
 
 const userCount = db.prepare("SELECT COUNT(*) AS c FROM users").get().c;
@@ -249,3 +249,66 @@ app.get("/admin/matches", (req, res) => {
       <h1>Admin – Enter Results</h1>
       <a href="/me/matches">Back</a>
       <table>
+        <tr><th>Match</th><th>Kickoff</th><th>Final Score</th></tr>
+        ${matches.map(m => `
+          <tr>
+            <td>${m.home_team} vs ${m.away_team}</td>
+            <td>${m.kickoff_time}</td>
+            <td>
+              <form method="POST" action="/admin/match/${m.id}">
+                <input type="number" name="fh" min="0" value="${m.final_home_score ?? ""}" /> :
+                <input type="number" name="fa" min="0" value="${m.final_away_score ?? ""}" />
+                <input type="submit" value="Save" />
+              </form>
+            </td>
+          </tr>
+        `).join("")}
+      </table>
+    </body></html>
+  `);
+});
+
+// Save final score
+app.post("/admin/match/:mid", (req, res) => {
+  const { mid } = req.params;
+  const fh = Number(req.body.fh);
+  const fa = Number(req.body.fa);
+
+  db.prepare("UPDATE matches SET final_home_score = ?, final_away_score = ? WHERE id = ?")
+    .run(fh, fa, mid);
+
+  recalcPoints(mid);
+  res.redirect("/admin/matches");
+});
+
+// Leaderboard
+app.get("/leaderboard", (req, res) => {
+  const rows = db.prepare(`
+    SELECT u.name, COALESCE(SUM(p.points), 0) AS total
+    FROM users u
+    LEFT JOIN predictions p ON p.user_id = u.id
+    GROUP BY u.id
+    ORDER BY total DESC
+  `).all();
+
+  res.send(`
+    <html><head>${baseStyles}<meta name="viewport" content="width=device-width, initial-scale=1"></head>
+    <body>
+      <h1>Leaderboard</h1>
+      <a href="/me/matches">Back</a>
+      <table>
+        <tr><th>Rank</th><th>Player</th><th>Points</th></tr>
+        ${rows.map((r, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${r.name}</td>
+            <td>${r.total}</td>
+          </tr>
+        `).join("")}
+      </table>
+    </body></html>
+  `);
+});
+
+// Start server
+app.listen(3000, () => console.log("Running at http://localhost:3000"));
