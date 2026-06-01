@@ -1,0 +1,13 @@
+{
+  "name": "wc2026-predictions",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.0.0",
+    "body-parser": "^1.20.2",
+    "express": "^4.19.2"
+  }
+}
